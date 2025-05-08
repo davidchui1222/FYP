@@ -1,0 +1,60 @@
+<mujoco model="HapticMaster">
+  <option timestep="0.001" gravity="0.0 0.0 0.0"/>
+
+  <compiler angle="degree" coordinate="local"/>
+
+  <worldbody>
+    <!-- Plane for Reference -->
+    <body name="base" pos="0 0 0">
+      <geom type="plane" size="1 1 0.1" rgba="0.8 0.3 0.3 1"/>
+
+      <!-- Banana modeled as a capsule -->
+      <body name="banana" pos="0.54 0 0.32" axisangle="0 1 0 90">
+        <geom name="banana" type="capsule" size="0.0381 0.1016" mass="0.118" pos="0 0 0" friction="0.2 0.005 0.005" rgba="1 1 0 1"/>
+        <joint name="prismatic_vertical_banana" type="slide" axis="1 0 0" range="-0.2 0.2"/>
+        <joint name="prismatic_horizontal_banana" type="slide" axis="0 0 1" range="-0.36 0.2"/>
+        <site name="end_effector"/>
+      </body>
+
+      <!-- Vertical Prismatic + Revolute -->
+      <body name="Body1" pos="0 0 0.25">
+        <geom type="cylinder" size="0.0337 0.2" mass="5" rgba="0.3 0.3 0.8 1"/>
+        <joint name="prismatic_vertical" type="slide" axis="0 0 1" range="-0.25 0.15"/>
+        <joint name="revolute" type="hinge" axis="0 0 1" range="-28.65 28.65"/>
+
+        <!-- Horizontal Prismatic -->
+        <body name="Body2" pos="0.2 0 0.23" axisangle="0 1 0 90">
+          <geom type="cylinder" size="0.0337 0.46" mass="5" rgba="0.3 0.3 0.8 1"/>
+          <joint name="prismatic_horizontal" type="slide" axis="0 0 1" range="-0.36 0"/>
+
+          <!-- End Effector -->
+          <body name="EE" pos="0.03 0 0.46" axisangle="0 1 0 90">
+            <geom type="cylinder" size="0.01 0.06" mass="0.2" rgba="0.3 0.3 0.8 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  
+  <contact>
+    <exclude body1="base" body2="Body1"/>
+    <exclude body1="banana" body2="Body1"/>
+    <exclude body1="banana" body2="Body2"/>
+  </contact>
+  
+  <!-- Actuators -->
+  <actuator>
+    <motor name="revolute_torque" joint="revolute" ctrllimited="true" ctrlrange="-1 1"/>
+    <motor name="vertical_force" joint="prismatic_vertical" ctrllimited="true" ctrlrange="-1 1"/>
+    <motor name="horizontal_force" joint="prismatic_horizontal" ctrllimited="true" ctrlrange="-1 1"/>
+    <position joint="prismatic_vertical_banana" kp="50" kv="20"/>
+    <position joint="prismatic_horizontal_banana" kp="50" kv="20"/>
+  </actuator>
+  
+  <!-- Sensors -->
+  <sensor>
+    <framepos objtype="body" objname="EE" name="EE_pos"/>
+    <framelinvel objtype="body" objname="EE" name="EE_vel"/> 
+    <force site="end_effector" name="EE_force"/>
+  </sensor>
+</mujoco>
